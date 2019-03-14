@@ -14,8 +14,8 @@ U8GLIB_SH1106_128X64 u8g(U8G_I2C_OPT_NONE);  // I2C / TWI
 // Setup variables
 
 // ADC input pins
-int rxa = 1;  // ADC input of reciever A
-int rxb = 1;  // ADC input of reciever B
+int rxa = A0;  // ADC input of reciever A
+int rxb = A1;  // ADC input of reciever B
 // int rxc = ?;  // ADC input of reciever C (future)
 // int rxd = ?;  // ADC input of reciever D (future)
 
@@ -43,6 +43,13 @@ int tonefreqb = 2000; // frequency in Hz
 // Outputs for LCD display.
 // ???
 
+int RSSIA = 0;
+int RSSIB = 0;
+float volta = 0;
+float voltb = 0;
+float ssa = 0;
+float ssb = 0;
+
 
 void setup() {  
    Serial.begin(9600); // setup serial for debug
@@ -57,6 +64,8 @@ void setup() {
    pinMode(ledb, OUTPUT); // rx B LED
 
    pinMode(buzz, OUTPUT);
+
+   
 }
 
  
@@ -82,15 +91,17 @@ void loop(){
    
 // read RSSI and convert to voltage
 
-   int RSSIA = analogRead(rxa);
-   float volta = RSSIA*(5.0/1023.0);
-   int RSSIB = analogRead(rxb);
-   float voltb = RSSIB*(5.0/1023.0);
+   RSSIA = analogRead(rxa);
+   volta = RSSIA*(5.0/1023.0);
+   ssa = RSSIA*(100.0/1023.0);
+   RSSIB = analogRead(rxb);
+   voltb = RSSIB*(5.0/1023.0);
+   ssb = RSSIB*(100.0/1023.0);
 
 // display readings
  u8g.firstPage();  
   do {
-    draw();
+    draw(volta, voltb, ssa, ssb);
   } while( u8g.nextPage() );
 
 // decide on reciever
@@ -98,17 +109,13 @@ void loop(){
 
 // set reciever if necessary
 
-//
-
-
-// loop 
 
  }  // Close main loop
 
 
 // functions
 
-// function select reciever a
+// function select reciever A
 void setrxa(){
    userx=1;
    digitalWrite(ledb,LOW); // set ledb off
@@ -120,7 +127,7 @@ void setrxa(){
 }
 
 
-// function select reciever b
+// function select reciever B
 void setrxb(){
    userx=2;
    digitalWrite(leda,LOW); // set leda off
@@ -131,13 +138,21 @@ void setrxb(){
    noTone(buzz);
 }
 
-void draw(void) {
+void draw(float a, float b, int aa, int bb) {
   // graphic commands to redraw the complete screen should be placed here  
   u8g.setFont(u8g_font_unifont);
   //u8g.setFont(u8g_font_osb21);
-  u8g.drawStr( 0, 22, "RX-A  4.23V  97%");
-  u8g.drawStr( 0, 44, "RX-B  3.23V  84%");
+  u8g.drawStr( 0, 22, "RX-A      V    %");
+  u8g.drawStr( 0, 44, "RX-B      V    %");
   u8g.drawStr( 0, 60, "Counter " " units");
+  u8g.setPrintPos(45, 22);
+  u8g.print(a);
+  u8g.setPrintPos(45, 44);
+  u8g.print(b);
+  u8g.setPrintPos(100, 22);
+  u8g.print(aa);
+  u8g.setPrintPos(100, 44);
+  u8g.print(bb);
 
 
 }
